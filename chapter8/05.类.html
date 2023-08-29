@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <pre>
+      不难看出04继承文件中各种继承方法都存在一定的局限性， 为了解决这个问题es6新增了class关键字
+      具体正式定义类的能力，类是ECMAScript中新的基础性语法糖结构，所以虽然es6表面上看起来可以支持
+      正式的面相对象编程，但实际上它背后使用的仍然是原型和构造函数的概念
+    </pre>
+  </head>
+  <body>
+    <script>
+      /* 
+        类定义： 于构造函数相似，定义类也有两种主要方式：类声明和类表达式。这两种方式都使用class关键字
+        ps：与函数表达式类似，类表达式在它们求值前也不能引用， 不过，与函数定义不同的是，虽然函数声明
+        可以提升，但类定义不能。而且与函数声明不同的地方是， 函数受函数作用域限制，而类受块作用域限制
+        加大括号
+        class Person {} // 类声明
+        const Animal = class {} // 类表达式
+      */
+      console.log(func); // undefined
+      var func = function () {
+        console.log(111);
+      }
+      console.log(func);
+
+      // console.log(foo); // 0Uncaught ReferenceError: Cannot access 'foo' before initialization
+      class foo {}
+      console.log(foo);
+
+      // 类的构成
+      // 类可以包含构造函数，实例方法，获取函数，设置函数和静态类方法，但这些都不是必需的
+      class Foo {}
+      class Foo2 {
+        constructor() {}
+
+        get myBaz() {}
+
+        static myQux() {}
+      }
+
+      // 类构造函数constructor关键字用于在类定义块内部创建类的构造函数。 constructor会告诉解释器在使用
+      // new操作符创建类的新实例时，应该调用这个函数，构造函数的定义不是必需的， 不定义构造函数相当于将构造函数定义为空函数
+
+      // 实例化
+      /* 使用new操作符实例化Person的操作等于使用new调研其构造函数， 唯一可感知的不同之处就是，js解释器知道使用new和类意味着
+      应该使用constructor函数进行实例化， 使用new调用类的构造函数会执行以下操作
+        1，在内存中创建一个新对象；
+        2，这个新对象内部的[[Prototype]]指针会被赋值为构造函数的prototype属性；
+        3，构造函数内部this被赋值为这个新对象（即this指向新对象）；
+        4，执行构造函数内部的代码（给新对象添加属性）；
+        5，如果否则函数返回的非空对象，则返回该对象；否则返回刚创建的新对象；
+        ps: 构造函数实例化传入的参数会用作构造函数的参数， 如果不需要参数， 则类名后面的括号也是可选的，
+        默认情况下， 类构造函数会在执行之后返回this对象，构造函数返回的对象会被用做实例化的对象。如果
+        没有什么引用新创建的this对象， 那么这个对象会被销毁， 不过如果返回的不是this对象，而是其他对象
+        那么这个对象不会通过instanceof操作符检测出跟类有关联，因为这个对象的原型指针并没有被修改
+      */
+      /* class Person{
+        constructor() {
+          console.log('Person constructor');
+        }
+      } */
+
+      class Person {
+        constructor(override) {
+          this.name = 'james';
+          if (override) {
+            return {
+              foo: 'bar'
+            }
+          }
+        }
+      }
+      const p1 = new Person(false), 
+            p2 = new Person(true);
+      console.log(p1 instanceof Person); // true
+      console.log(p2 instanceof Person); // false
+      // 类与构造函数主要的区别就是， 调用类构造函数必须使用new操作符， 而普通构造函数如果不适应new调用
+      // 那么就会以全局的this（通常是window）作为内部对象， 调用类构造函数时如果忘了使用new会抛出错误
+
+      // 2，把类当成特殊函数
+      console.log(typeof Person); // function
+      console.log(typeof Person.prototype.constructor); // function
+      console.log(Person.constructor); // ƒ Function() { [native code] }
+      console.log(Person === Person.prototype.constructor); // true
+    </script>
+  </body>
+</html>

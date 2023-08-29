@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    迭代器模式描述了一个方案, 即可以把有些结构称为"可迭代对象"(理解成数组或集合这样的对象类型, 他们包含元素有限
+    而且都具有无歧义的遍历顺序), 因为他们实现了正式的Iterable接口
+    而且可以通过Iterator来消费
+
+    可迭代协议: 实现Iterable接口要求同时具备两种能力: 支持迭代的自我识别能力和创建实现Iterator接口的对象的能力
+    在ECMAScript中, 这意味着必须暴露一个属性作为"默认迭代器", 而且这个函数必须使用特殊的Symbol.iterator作为键
+    这个默认迭代器属性必须引用一个迭代器工厂函数,调用这个工厂函数必须返回一个新迭代器,很多内置类都实现了
+    Iterator接口(字符串, 数组, Map, 集合, arguments对象)
+
+    迭代器协议: 迭代器是一种一次性使用的对象, 用于迭代与其关联的可迭代对象. 迭代器api使用
+    next() 方法在可迭代对象中遍历数据. 每次成功调用next(), 都会返回一个IterartorResult对象,
+    其中包含迭代器返回的下一个值. 若不调用next(), 则无法迭代器当前位置
+  </pre>
+</head>
+<body>
+  <script>
+    let num = 1
+    let str = 'abc'
+    console.log(num[Symbol.iterator]); // undefined
+    // 部分类型内置实现了迭代器工厂函数
+    console.log(str[Symbol.iterator]); // ƒ [Symbol.iterator]() { [native code] }
+
+    // 调用迭代器工厂函数会生成一个迭代器
+    console.log(str[Symbol.iterator]()); // StringIterator {}
+
+    /* 
+      实习可迭代协议的所有类型都会自动兼容接收可迭代对象的任何语言特性
+      接收可迭代对象的原生语言特性包括: for-of 循环, 数组结构, 扩展运算符, Array.from()
+      创建集合, 创建映射, Promise.all(), Promise.race()接收由期约组成的可迭代对像, yield*操作符在生成器中使用
+
+      同样的如果原型链上的父类实现了Iterator接口, 则这个对象也就实现了这个接口
+    */
+
+    let arr = ['foo', 'bar', 'bens']
+    for (const key of arr) {
+      console.log(key);
+    }
+
+    /* 迭代器协议使用 */
+    // 迭代器工厂函数
+    console.log(arr[Symbol.iterator]); // ƒ values() { [native code] }
+
+    // 迭代器l
+    let iter = arr[Symbol.iterator]()
+    console.log(iter); // Array Iterator {}
+
+    // 执行迭代(在原型链上能看到next() 方法)
+    console.log(iter.next()); // {value: 'foo', done: false}
+    console.log(iter.next()); // {value: 'bar', done: false}
+    console.log(iter.next()); // {value: 'bens', done: false}
+    console.log(iter.next()); // {value: undefined, done: true}
+    console.log(iter.next()); // {value: undefined, done: true}
+    console.log(iter.next()); // {value: undefined, done: true}
+    /* 
+      总结: 通过创建迭代器并调用next() 方法按顺序迭代数组, 直至不在产生新值, 迭代器并不知道
+      怎么从可迭代对象中取得下一个值, 也就不知道可迭代对象有多大, 只要迭代器到达done: true 状态
+      后续调用next() 就一直返回同样的值了
+    */
+
+    /* 
+      迭代器概念很容易模糊, 因为他可以指通用的迭代, 也可以指接口, 也可以指正式的迭代器类型
+      比较一下显式迭代实现和一个原生迭代器实现
+      模拟:
+      1, 调用这个类实现了可迭代接口Iterator
+      2, 调用默认的迭代器工厂函数会返回
+      3, 一个实现迭代器接口的迭代器对象
+      原生:
+      Array类型实现了可迭代接口Iterator
+      调用Array类型的默认迭代器工厂函数
+      会创建一个ArrayIterator的实例
+    */
+    class Foo {
+      [Symbol.iterator] () {
+        return {
+          next() {
+            return {
+              value: 'foo',
+              done: false
+            }
+          }
+        }
+      }
+    }
+    let f = new Foo()
+    // console.log(f[Symbol.iterator]);
+    console.log(f[Symbol.iterator]()); // {next: ƒ}
+    console.log(f[Symbol.iterator]().next()); // {value: 'foo', done: false}
+  </script>
+</body>
+</html>

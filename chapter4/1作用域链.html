@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    对于作用域链首先得了解变量
+    在js中可以包含两种不同类型的数据: 原始值和引用值
+    原始值就是最简单的数据类型, 可以是数字, 字符串, 布尔值, null, undefined, symbol, 保存原始值的变量是按值访问的,因此可以直接访问
+
+    引用值就是指向其他数据的指针, 可以是变量, 对象, 数组, 函数等,js不允许直接访问内存位置,因此不能直接操作对象所在的内存空间
+    在操作对象的时候实际上是对该对象的引用而非操作对象实际本身. 为此保存引用值的变量是按引用访问的
+
+    所以就导致了原始值和引用值复制的区别
+    原始值赋值会被复制到新变量的位置
+    引用值赋值实际上就是一个指针, 他指向储存在堆内存中的变量
+
+    这就有个很有趣的情况, 在我们调用函数的时候参数传递: 对应原始值和引用值参数的是不同的
+  </pre>
+</head>
+<body>
+  <script>
+    let a = 1
+    let obj = {
+      name: 'james'
+    }
+
+    function former(params) {
+      params += 2
+    }
+    former(a)
+    console.log(a);
+
+    function objform(params) {
+      params.name = 'kobe'
+    }
+    objform(obj)
+    console.log(obj);
+
+    // 所以自然就引出了对变量类型的判断, 对于原始值判断比如字符串, 数值, 布尔值, undefined最好的办法就是typeof了, 对于null和object返回object
+    let str = 'nichale'
+    let num = 1
+    console.log(typeof str);
+    console.log(typeof num);
+    console.log(typeof null);
+    console.log(typeof {});
+
+    // 对于引用值判断, 可以使用instanceof来判断, 按照定义所有的引用值都是object的实例, 因此通过instanceof来检测任何引用值和Object构造函数
+    // 都会返回true, 如果检测的是原始值, 则返回false
+    let objs = {
+      name: 'james'
+    }
+    console.log(null instanceof Object);
+    console.log(objs instanceof Object); // 变量objs是Object吗?
+
+    // 执行上下文与作用域
+    /* 
+      执行上下文的概念在js中很重要, 变量或者函数的上下文决定了他们可以访问那些数据
+      ※ 每个上下文都有一个关联的  变量对象  , 而这个上下文中定义的所有变量和函数都是存在于这个对象上的, 
+      虽然没法通过代码访问变量对象,但是后台处理数据会用到它
+
+      全局上下文-最外层的上下文, 便是全局上下文的对象可能不一样, 在浏览器中,全局上下文就是我们常说的windows对象
+      局部上下文-指的是函数的上下文, 在js中, 局部上下文就是函数的对象
+    */
+
+    /* 
+      每个函数都有自己的上下文, 当代码执行流入函数时, 函数的上下文被推到一个上下文栈上, 在函数执行完之后, 
+      上下文栈会弹出该函数上下文, 将控制权返还给之前的执行上下文, js中程序的执行流程就是通过这个上下文栈控制的
+
+      上下文中的代码在执行的时候, 会创建变量对象的一个作用域链, 这个作用域链决定了各级上下文中的代码在访问
+      变量和函数顺序, 代码正在执行的上下文的变量对象始终位于作用域链的最前端. 如果上下文是函数.则其活动对象用
+      作变量对象, 活动对象最初只有一个定义变量argument, 作用域链中的下一个变量对象来自包含上下文, 再下一个对象来自下一个包含上下文
+      依次类推直至全局上下文.  这就是作用域链
+
+      ps: 从下面的函数就能看出内部上下文可以通过作用域链访问外部上下文中的变量和函数, 但外部上下文无法访问内部上下文中的任何东西
+      上下文之间的连接是线型的, 有序的. 每个上下文都能到上一级上下文中搜索, 但是任何上下文都不能到下一级上下文中去搜索
+    */
+    let color = 'blue'
+
+    function change() {
+
+      function change1() {
+        let colors = 'red'
+        function change3() {
+          color = 'green'
+        }
+
+        change3()
+      }
+      change1()
+    }
+    change()
+    console.log(color);
+    // console.log(colors); // Uncaught ReferenceError: colors is not defined
+
+    /* 
+      作用域链增强
+      虽然执行上下文主要有全局上下文和函数上下文(eval() 内部调用存在第三种上下文), 但是还是有其他方法增强
+      作用域链, 某些语句会导致在作用域链前端临时添加一个上下文, 这个上下文在代码执行之后就会删除
+      ① try/ catch语句的catch块
+      ② with语句
+      这两种情况都会在作用域链前端添加一个变量对象.
+      对于with语句, 会向作用域链前端添加指定的对象;
+      对于catch语句而言, 则会创建一个新的变脸对象, 这个变量对象包含要抛出的错误
+    */
+    function buildUrl() {
+      let qs = '?debug=true';
+      let url
+      with (location) {
+        url = href + qs
+      }
+      return url
+    }
+    console.log(buildUrl());
+    /* 从上面这个例子with语句将location对象作为上下文, 因此location会被添加到作用域链前端
+      当with语句中的代码引用变脸href时候, 实际上应用的是location对象中的href属性, 也就是自己变量对象的属性
+    */
+  </script>
+</body>
+</html>

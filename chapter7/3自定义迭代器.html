@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    通过class类实现的构造函数内部constructor() 接收参数就是实例化传入参数值
+  </pre>
+</head>
+<body>
+  <script>
+    class Count {
+      constructor(end) {
+        this.end = end;
+        this.index = 1;
+      }
+      next() {
+        if (this.index <= this.end) {
+          return {
+            value: this.index++,
+            done: false
+          }
+        } else {
+          return {
+            value: undefined,
+            done: true
+          }
+        }
+      }
+      [Symbol.iterator]() {
+        console.log(this);
+        return this // 有没有看懂这个返回this的作用?
+      }
+    }
+    let count = new Count(5)
+    console.log(count[Symbol.iterator]());
+    for (const i of count) {
+      console.log(i);
+    }
+    /* 
+      [Symbol.iterator]() 返回当前对象, 由此也课件for-of迭代会先执行[Symbol.iterator](){} 通过返回工厂函数
+      再去调用当前对象的next方法返回value值
+    */
+    /* 
+      但是此时你再去for-of迭代执行, 会发现不执行了....
+      为了让一个可迭代对象能够创建多个迭代器, 必须每创建一个迭代器就应该对应一个新计数器, 为此
+      可以把计数器变量放到闭包里, 然后通过闭包返回迭代器
+    */
+    for (const i of count) {
+      console.log(i);
+    }
+
+    class Count1 {
+      constructor(limit) {
+        this.limit = limit
+      }
+
+      [Symbol.iterator]() {
+        let count = 1,
+        limit = this.limit
+        return {
+          next() {
+            if (count <= limit) {
+              return {
+                value: count++,
+                done: false
+              }
+            } else {
+              return {
+                value: undefined,
+                done: true
+              }
+            }
+          }
+        }
+      }
+    }
+    let count2 = new Count1(4)
+    // for (const i of count2) {
+    //   console.log(i);
+    // }
+    // for (const i of count2) {
+    //   console.log(i);
+    // }
+    // for (const i of count2) {
+    //   console.log(i);
+    // }
+
+    /* 
+      提前终止迭代器
+      可选的return() 方法用于指定在迭代器提前关闭是执行的逻辑, 执行迭代的结果在想让迭代器
+      指定它不想迭代到可迭代对象耗尽时, 就可以关闭迭代器, 可能的情况包括
+      for-of 循环通过break, continue, return 或者throw提前退出
+      结构操作并未消费所有的值
+      return() 方法非必须返回一个有效的IteratorResult对象, 简单情况下, 可以只返回{done: true}
+      因为这个返回值只会用在生成器上下文中
+
+      ps: 因为return()方法是可选的, 所以并非所有迭代器都是可关闭的. 要知道某个迭代器是否可关闭
+      可以测试这个迭代器实现的return 属性是不是函数对象. 
+      不过仅仅给一个不可关闭的迭代器增加这个方法并不能让它变成可关闭的, 这是因为调用return() 
+      不会强制迭代器进入关闭状态即使如此return() 方法还是会被调用
+    */
+
+    class Count2 {
+      constructor(limit) {
+        this.limit = limit
+      }
+
+      [Symbol.iterator]() {
+        let count = 1,
+        limit = this.limit
+        return {
+          next() {
+            if (count <= limit) {
+              return {
+                value: count++,
+                done: false
+              }
+            } else {
+              return {
+                value: undefined,
+                done: true
+              }
+            }
+          },
+          return() {
+            console.log('return');
+            return {
+              done: true
+            }
+          }
+        }
+      }
+    }
+    let count3 = new Count2(4)
+    for (const i of count3) {
+      if (i > 2) {
+        break;
+      }
+      console.log(i);
+    }
+
+    // return() 方法并不能关闭迭代器
+    const arr = [1, 3, 5, 7, 9]
+    let iter = arr[Symbol.iterator]()
+    console.log(arr[Symbol.iterator]());
+    for (const i of iter) {
+      console.log(i);
+      if (i > 2) {
+        break
+      }
+    } // 1, 3
+
+    // 5, 7, 9
+    for (const i of iter) {
+      console.log(i);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Document</title>
+</head>
+
+<body>
+	<pre>
+    函数定义: 函数是ECMAScript中最有意思的部分,这主要是因为函数实际上就是对象, 每个函数都是Function 类型的实例,
+    而Function也有属性和方法, 跟其他引用类型一样, 因为函数是对象, 所有函数名就是指向函数对象的指针,而且一定跟函数
+    本身紧密绑定
+    
+  </pre>
+	<script>
+		/* 
+	函数定义方法: 函数声明最后没有分号
+	① 常见使用函数声明方式定义
+		*/
+		// function sum(num1, num2) {
+		//   return num1 + num2
+		// }
+		/* 
+	②函数表达式, 几乎与函数声明式相同
+	 */
+		// let sum = function (num1, num2) {
+		//   return num1 + num2
+		// }
+		/* 
+	③使用箭头函数定义
+	ps: 箭头函数是es6新定义的函数表达式方法,箭头函数相比传统定义函数方法更加简单.
+	而且如果只有一个参数括号可以省略, 也可以不用大括号,当箭头函数后面只有一行代码的时候
+	省略大括号会隐式的返回这行代码的值;
+	但是箭头函数虽然语法简洁, 但也有很多常见不适用, 箭头函数不能使用argument, super和new.target
+	也不能作为构造函数,此外箭头函数也没有prototype属性
+	 */
+		// let sum = (num1, num2) => {
+		//   return num1 + num2
+		// }
+		/* 
+	④: 通过Function构造函数. 这个构造函数接收任意多个字符串,最后一个参数始终会被当成函数体,
+	而之前的参数都是新函数的参数.
+	ps: 不推荐这种语法定义函数,因为这段代码会被解释两次: 第一次将他当成常规的ECMAScript代码;
+	第二次是解释传给构造函数的字符串,这样显然会影响性能. 不过,把函数想象成对象, 把函数对象名
+	想象成指针是很重要的.
+	 */
+		// let sum = new Function('num1', 'num2', 'return num1 + num2')
+
+		// 函数名
+		/* 
+	因为在JS中函数名就是指向函数的指针, 所以他们跟其他包含对象指针的变量具有相应的行为,
+	这就意味着一个函数可以有多个名称
+	 */
+		function sum(num1, num2) {
+			return num1 + num2;
+		}
+		console.log(sum(10, 20));
+
+		let anotherSum = sum;
+		console.log(anotherSum(10, 20));
+
+		sum = null;
+		console.log(anotherSum(10, 5));
+
+		/* 
+	以上定义一个sum()函数, 再去声明let anotherSum = sum,注意: 使用不带括号的函数名会访问函数指针,
+	而不会执行函数.此时anotherSum和sum都指向同一个函数, 把sum设置为null之后, 就切断了sum与堆空间
+	中函数之间的关联, 而anotherSum()还是可以正常调用(因为anotherSum与堆空间里指针关联还是存在), 
+	说明函数名就是指向函数的指针,
+	*/
+		/* 
+	ps: ECMAScript的所有对象都会暴露一个只读的name属性,其中包含关于函数的信息,
+	多数情况下这个属性中保存的就是一个函数标识符,或者说是一个字符串的变量名.
+	即使每天名称也会变成空字符串, 如果使用Function构造函数创建的,则会标记成anonymous
+ */
+		function foo() { }
+		let bar = function () { };
+		let bez = () => { };
+
+		console.log(foo.name); // foo
+		console.log(bar.name); // bar
+		console.log(bez.name); // bez
+		console.log((() => { }).name); // ''
+		console.log(new Function().name); // anonymous
+
+		console.log(foo.bind(null).name); // bound foo
+
+		// 理解参数
+		/* 
+ECMAScript函数不关心参数的格式也不关心参数的数据类型, 定义函数时候要接收两个参数,并不意味着调用
+的时候就要传入两个参数,你甚至可以一个不传,解释器都不会报错
+之所以这样,主要是ECMAScript函数的参数在内部表现为一个数组, 函数被调用的时候总会接收一个数组,
+但是函数并不关心这个数组包含什么,也不关心数组中元素, 实际上,在使用function关键字定义函数时候,
+可以在函数内部访问arguments对象,从而取得传进来的每个参数值
+arguments对象是一个类数组对象(但不是Array的实例), 因此可以使用中括号语法访问其中元素,第一个元素就是arguments[0]
+参数个数可以通过arguments.length获取
+*/
+		function sayHi(name, message) {
+			console.log("hello" + name + "," + message);
+		}
+		function sayHey() {
+			console.log("hello" + arguments[0] + "," + arguments[1]);
+		}
+		// 手动修改arguments参数
+		/* 
+		命名参数num1保存着与argument[0],一样的值，因此使用谁都无所谓（同样的num2也保存着跟argument[1]一样的值）
+		因为argument对象的值会自动同步到对应的命名参数， 所以修改arguments[1]也会修改num2的值， 因此两个值都是10，
+		但这并不意味着它们都是访问同一个内存地址， 它们在内存中还是分开的， 只不过是会保持同步而已，ps： 如果只传一个参数
+		然后把arguments[1]设置为某个值，那么这个值并不会反映到第二个命名参数， 这是因为arguments对象的长度是根据传入的
+		参数个数，而非定义函数时给出的命名参数个数确定的
+*/
+		function argumentChange(num1, num2, num3) {
+			arguments[0] = 10;
+			arguments[2] = 8
+			console.log(num1 === arguments[0]);
+			console.log(num1 + num2, "argumentChangeargumentChange");
+			console.log(num3); // undefined
+		}
+		argumentChange(2, 4);
+		// 在argumentChange中
+		// 所有可以通过arguments参数对象进行类似于重载的操作
+		/* 
+需要注意的是arguments和传入形参同时使用修改arguments[0] = 10, 则传入形参第一个会被修改为10,
+但是这并不意味着他们访问的是同一个内存地址,他们在内存中还是分开的,只不过是保持同步而已,
+还有就是如果值传入一个参数,然后把arguments[1]设置为某个值,那么这个值并不会反映在第二个命名参数
+这是因为arguments对象的长度是根据传入的参数个数,而非定义函数的时候给出的命名参数个数确定的
+ps: 在严格模式下设置arguments[0] = 10, 不会影响传入第一个参数的值,还是以传入值为准
+*/
+		// 虽然箭头函数没有arguments对象,但是可以在包装函数中把它提供给箭头函数:
+		function foo1() {
+			let bar = () => {
+				console.log(arguments[0]); // 10
+			};
+			bar();
+		}
+		foo1(10);
+
+		// 没有重载
+		// ECMAScript函数不能像传统编程语言那样重载, 如:Java中,一个函数可以有两个定义只要签名不同就行,
+		// 但是在ECMAScript函数中没有签名,因为参数是由包含多个值的数组表示的,没有函数签名,自然没有重载
+
+		// 如果ECMAScript中定义两个同名的函数,则后定义的会覆盖先定义的
+		function addNew(num) {
+			return num + 100;
+		}
+		function addNew(num) {
+			return num + 200;
+		}
+		let result = addNew(100);
+		console.log(result);
+
+		/* 
+当然可以通过argument检查参数的类型和数量,然后分别执行不同的逻辑来模拟函数的重载
+*/
+
+		// 默认参数，函数的默认参数只有在函数被调用的时候才会求值，不会在函数定义时求值，而且，计算默认值的函数只有
+		// 在调用函数未传对应的参数时才会调用
+		/* 
+es6 之后支持显式定义默认参数了, 只要在函数定义中的参数后面用 = 就可以默认为参数赋值一个默认值
+默认参数初始化顺序遵循'暂时性死区'规则,即前面定义的参数不能引用后面定义的
+*/
+		function nameDemo(name = numerals, numerals = "V") {
+			return `name ${name} ${numerals}`;
+		}
+		//  同时函数的参数相关也可以使用展开运算符和默认才是结合使用，ps：收集参数结构前面如果还有命名参数，则只会收集其余参数
+		// 如果没有则会得到空数组，因为收集参数的结果可变，所以只能把它当作最后一个参数
+		var value = [1, 2, 5];
+      //  function foos(...value, num = 7) {
+
+      //  }
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <pre>
+        类的语法可以非常方便的定义应该存在与实例上的成员，应该存在于原型上的成员，以及应改存在于类本身的成员
+    </pre>
+  </head>
+  <body>
+    <script>
+			// 实例成员， 每次通过new调用类标识符的时候都会执行类构造函数， 在这个类构造函数内部，可以为新创建的实例（this）
+			// 添加自有属性， 至于添加什么属性则没有限制， 在构造函数执行完毕之后，仍然可以给实例继续添加新成员
+			// 因为每个实例都对应一个唯一的成员对象， 这也意味着所有成员都不会在原型上共享
+      class Person {
+				constructor(age) {
+					// 这个地方使用对象包装定义一个字符串， 就是为了下面测试两个对象的相等性
+					// this.name = 'jack';
+					this.name = new String('jack');
+					this.age = void 0 === age ? 18 : age;
+					this.nickName = ['kerwin', 'pink']
+				}
+				sayName() {
+					console.log(this.name);
+				}
+			}
+			const p1 = new Person(5), p2 = new Person();
+			console.log(p1);
+			console.log(p2);
+			console.log(p1.name === p2.name); // false
+
+			// 原型方法和访问器
+			// 为了在实例间共享方法， 类定义语法把在类块中定义的方法作为原型方法
+			class PersonS {
+				constructor() {
+					// 添加到this的所有内容都会存在于不同的实例上
+					this.locate = () => {
+						console.log('instance');
+					}
+				}
+				// 在类块中定义的所有内容都会在类的原型上
+				locate() {
+					console.log('prototype');
+				}
+				name = 'jack';
+				// name: 'jack'
+			}
+			let p3 = new PersonS();
+			let p4 = new PersonS()
+			p3.name = 'james'
+			console.log(p3);
+			console.log(p4);
+			p3.locate() // instance
+			PersonS.prototype.locate() // prototype
+			// 可以把方法定义在类构造函数或者类块中， 但不能在类块中给原型添加原始值或对象作为成员数据
+			// 类定义也支持获取和设置访问器， 语法与行为跟普通对象一样
+			class PersonName {
+				set name(value) {
+					console.log(this, 'set nam');
+					this._name = value;
+				}
+				get name() {
+					console.log(this, 'get name');
+					return this._name;
+				}
+			}
+			let p5 = new PersonName();
+			p5.name = 'james';
+			console.log(p5.name);
+
+			// 3.静态类方法
+			/* 
+				可以在类上定义静态方法， 这些方法通常用于执行不特定于实例的操作，也不要求存在类的实例于原型成员类似
+				静态成员每个类上只能有一个， 静态类成员在类定义中使用static关键字定义， 在静态成员中，this引用类本身
+				其他所有约定跟原型成员一样			
+			*/
+			class Animal {
+				constructor() {
+					this.name = 'animal';
+				}
+
+				// 定义在类本身上
+				static sayName() {
+					console.log('animal', this);
+				}
+			}
+			let animal = new Animal();
+			console.log(animal.name);
+			// animal.sayName(); // animal.sayName is not a function
+			Animal.sayName(); // animal class Animal {...}
+
+			// 4.非函数原型和类成员
+			// 虽然类定义并不显式支持在原型或类上添加成员数据，但在类定义外部，可以手动添加成员数据
+    </script>
+  </body>
+</html>

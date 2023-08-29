@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    Global对象为一个兜底对象, 它针对的是不属于任何对象的属性和方法, 实际上, 不存在全局变量
+    或全局函数这种东西, 在全局作用域中定义的变量和函数都会变成Global对象的属性
+    前面介绍的isNaN(), isFinite(), parseInt(), parseFloat()等方法都是Global对象的方法
+  </pre>
+</head>
+<body>
+  <script>
+    /* 
+      常见的encodeURI(), encodeURIComponent(), decodeURI(), decodeURIComponent()
+      什么区别呢? encodeURI()不会出来url组件的特殊字符比如冒号 斜杠 问号 而encodeURIComponent()
+      会编码它发现所有非标准字符
+    */
+    let uri = "http://www.baidu.com/index.html?name=zhangsan&age=18";
+    console.log(encodeURI(uri));
+    console.log(encodeURIComponent(uri));
+
+    // eval() 方法可能是整个语言中最强大的了, 这个方法就是一个完整的javascript解释器, 它接收一个参数
+    // 就是一个要执行的js字符串
+    /* 
+      当解释器发现eval() 调用时, 会将参数解释为实际的ECMAScript语句, 然后将其插入到该位置, 通过
+      eval()执行的代码属于该调用所在上下文, 被执行的代码与该上下文拥有相同的作用域链
+
+      通过eval定义的任何变量和函数都不会提升, 这是因为在解析代码的时候, 他们是被包含在一个字符串中的
+      他们只是在eval() 执行的时候才会被创建
+    */
+    // eval(alert("hello world"));
+    eval(console.log('hello eval'))
+
+    eval('let msg = "my text"');
+    console.log(msg); // msg is not defined
+
+  </script>
+</body>
+</html>

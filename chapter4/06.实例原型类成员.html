@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <pre>
+        类的语法可以非常方便的定义应该存在与实例上的成员，应该存在于原型上的成员，以及应改存在于类本身的成员
+    </pre>
+  </head>
+  <body>
+    <script>
+			// 实例成员， 每次通过new调用类标识符的时候都会执行类构造函数， 在这个类构造函数内部，可以为新创建的实例（this）
+			// 添加自有属性， 至于添加什么属性则没有限制， 在构造函数执行完毕之后，仍然可以给实例继续添加新成员
+			// 因为每个实例都对应一个唯一的成员对象， 这也意味着所有成员都不会在原型上共享
+      class Person {
+				constructor(age) {
+					// 这个地方使用对象包装定义一个字符串， 就是为了下面测试两个对象的相等性
+					// this.name = 'jack';
+					this.name = new String('jack');
+					this.age = void 0 === age ? 18 : age;
+					this.nickName = ['kerwin', 'pink']
+				}
+				sayName() {
+					console.log(this.name);
+				}
+			}
+			const p1 = new Person(5), p2 = new Person();
+			console.log(p1);
+			console.log(p2);
+			console.log(p1.name === p2.name); // false
+
+			// 原型方法和访问器
+    </script>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    在ECMAScript6规范中新增一项内存管理优化机制, 让JavaScript引擎在满足条件的时候可以重用栈帧,
+    具体说这项游湖非常适合'尾调用', 即外部函数的返回值是一个内部函数的返回值(函数的最后一步是调用另一个函数), 如: 
+    ps: 尾调用后不需要执行额外的操作;尾调用函数不是引用外部函数作用域中自由变量的闭包
+    function outerFunction() {
+      return innerFunction(); // 尾调用
+    }
+  </pre>
+</head>
+<body>
+  <script>
+    /* 
+      在es6之前只是上面函数的会在内存发送如下操作
+      1. 执行到outerFunction函数体,第一个栈帧被推到栈上;
+      2. 执行到outerFunction函数体, 到return语句,计算返回值必须先计算innerFunction
+      3. 执行到innerFunction函数体, 第二个栈帧被推到栈上
+      4. 执行到innerFunction函数体,计算其返回值
+      5. 将返回值传回outerFunction, 然后outerFunction再返回值
+      6. 将栈帧弹出栈外
+     */
+
+    //  在es6 优化之后内存中会发生如下操作
+    /* 
+      1. 执行到outerFunction函数体, 第一个栈帧被推到栈上
+      2. 执行到outerFunction函数体, 到达return语句, 为求其返回语句,必须先求值innerFunction
+      3. 引擎发现把第一个栈帧弹出栈外也没有问题, 因为innerFunction的返回值也是outerFunction的返回值,
+      4. 弹出outerFunction的栈帧,
+      5. 执行到innerFunction函数体, 栈帧被推到栈上
+      6. 执行到innerFunction函数体,计算其返回值,
+      7. 将innerFunction的栈帧弹出栈外
+     */
+
+     /* 
+      很明显会发现第一种情况每多调用一次嵌套函数,就会多增加一个栈帧, 而第二种情况无论调用多少次嵌套函数,
+      都只有一个栈帧, 这就是es6尾调用优化的关键: 如果函数的逻辑允许基于尾调用将其销毁则引擎就会这么做
+      */
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    在使用垃圾回收的编程环境中, 开发者无需关心内存管理问题, 因为垃圾回收器会自动处理内存管理问题.
+    对于页面性能而言, 将内存占用量保持在一个较小的值可以让页面的性能更好. 优化内存占用的最佳手段
+    就是保证在执行代码时只保存必要的数据, 如果数据不再必要, 那么把他设置为null, 从而释放引用 -> 解除引用
+    这个建议最适合全局变量和全局对象的属性. 局部变量在超出作用域后会被自动解除引用
+
+    不过需要注意的是, 解除对一个值的引用并不会自动导致相关内存被回收. 解除引用的关键在于确保相关
+    的值已经不再上下文里了, 因此他在下次垃圾回收时会被回收
+  </pre>
+</head>
+<body>
+  <script>
+    // 这个例子
+    /* 
+      creatPerson()内部, localPerson作为返回值并赋值给globalPerson
+      localPerson在creatPerson()执行完成超出上下文就会被自动解除引用
+      globalPerson是一个全局变量, 应该在不再需要的时候手动解除其引用
+    */
+    function creatPerson(name) {
+      let localPerson = new Object()
+      localPerson.name = name
+
+      return localPerson
+    }
+
+    let globalPerson = creatPerson('张三')
+    globalPerson = null
+  </script>
+</body>
+</html>

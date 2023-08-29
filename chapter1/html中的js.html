@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    如何在网页中使用JS语言最简单的方式是插入 script 标签的方法
+    scrpit 标签8个属性介绍
+    1.async 异步加载js
+    2.charset 设置scr 属性指定的代码字符集;很少使用
+    3.crossorigin 设置相关请求的cors(跨域资源共享)默认不使用 corssoring="anonymous"配置文件不必设置凭据标志
+  </pre>
+  <style>
+    .box {
+      width: 200px;
+      height: 200px;
+      background-color: #f3f4f5;
+    }
+    .foo {
+      width: 200px;
+      height: 200px;
+      background-color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+
+  </div>
+  <button class="btn">添加shuxing</button>
+  <script>
+    function Person() {
+      
+    }
+    let per = new Person()
+    Person.prototype = {
+      // constructor: Person,
+      name: 'bob',
+      age: 18,
+      sayhi () {
+        alert('hello im bob');
+      }
+    }
+    // per.sayhi()
+    // let per2 = new Person()
+    // per2.sayhi()
+    console.dir(per.__proto__);
+    console.dir(Person);
+    console.log(per.__proto__ === Person.prototype);
+
+    // MutationObserver
+    let observer = new MutationObserver((MutationRecords) => {
+      console.log(MutationRecords);
+    })
+    observer.observe(document.querySelector('.box'), {
+      attributes: true
+    })
+    const btn = document.querySelector('.btn')
+    btn.addEventListener('click', function () {
+      document.querySelector('.box').className = 'foo'
+      console.log(111111);
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <pre>
+			严格来说js中没有私有成员的概念， 所以对象属性都公有的，不过，倒是有私有变量的概念，任何定义
+			在函数或块中的变量， 都可以认为是私有的，因为这个函数或块的外部无法访问其中的变量。私有变量
+			包括函数参数，局部变量，以及函数内部定义的其他函数
+		</pre>
+  </head>
+  <body>
+    <script>
+			function add(num1, num2) {
+				return num1 + num2
+			}
+			// 在这个函数中，num1和num2是私有变量，不能被外部访问，如果这个函数中创建一个闭包，则这个
+			// 闭包能通过其作用域链访问到其外部的这三个变量
+			// 特权方法： 是能通过访问函数私有变量的公共方法，在对象上有两种方式创建特权方法
+			function MyObj() {
+				// 私有变量和私有方法
+				let privateVal = 10
+
+				function privateFun() {
+					return false
+				}
+				// 特权方法
+				this.publicVal = function() {
+					return privateVal
+				}
+			}
+			// 静态私有变量（特权方法也可以通过使用私有作用域定义私有变量和函数来实现）
+			(function () {
+				// 私有变量和私有函数
+				let privateValue = 10
+
+				function privateFunc() {
+					return false
+				}
+
+				// 构造函数
+				MyObj = function () {}
+
+				// 公有和特权方法
+				MyObj.prototype.publicVal = function () {
+					privateValue++
+					return privateFunc()
+				}
+			})();
+			// 这个模式中，匿名函数表达式创建了一个包含构造函数及其方法的私有作用域，
+			// 首先定义的是私有变量和私有函数， 然后有定义了构造函数和公有方法，公有方法定义在构造函数的原型上
+			// 与典型的原型模式一模一样，注意： 这个模式定义的构造函数没有使用函数声明，使用的是函数表达式，函数
+			// 声明会创建内部函数， 在这里并不需要。 基于同样的原因，这里声明MyObj并没有使用任何关键字，
+			// 因为不使用关键字声明的变量会创建在全局作用域中，所以MyObj编程了全局变量，可以在这个私有作用域外部被访问
+
+			// 模块模式： 前面的模式通过自定义类型创建了私有变量和特权方法，模块模式则是在一个单例对象上实现了相同的隔离和封装
+			// 单例对象就是只有一个实例的对象，按照惯例js是通过对象字面量来创建单例对象的
+
+			let singleton = {
+				name: value,
+				method() {}
+			}
+			
+		</script>
+  </body>
+</html>

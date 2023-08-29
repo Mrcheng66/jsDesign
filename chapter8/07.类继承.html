@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+		<pre>
+			类继承
+			es6类支持单继承。使用extends关键字， 就可以继承任何拥有[[Construct]]和原型的对象。
+			很大程度上这意味着不仅可以继承一个类，也可以继承普通的构造函数（保持像后兼容）
+		</pre>
+  </head>
+  <body>
+		<script>
+			class Vehice {}
+			class Bus extends Vehice {}
+			let bar = new Bus()
+			console.log(bar instanceof Vehice); // true
+			console.log(bar instanceof Bus); // true
+
+			// 继承普通构造函数
+			function Person() {
+				
+			}
+			class Engineer extends Person {}
+			let e = new Engineer()
+			console.log(e instanceof Person); // true
+
+			// 派生类都会通过原型链访问到类和原型上定义的方法， this的值会反映调用相应方法的实例或者类
+			class Vehices {
+				identifyPrototype(id) {
+					console.log(id, this);
+				}
+				// 静态类只能通过当前类调用所以this自然指向当前类
+				static identifyClass(id) {
+					console.log(id, this);
+				}
+			}
+			class Buses extends Vehices {}
+			let v = new Vehices()
+			let b = new Buses()
+			console.log(v);
+			v.identifyPrototype('james')
+
+			// 构造函数， HomeObject 和super()
+			// 派生类可以通过super关键字引用他们的原型， 这个关键字只能在派生类中使用， 而且仅限于类构造函数
+			// 实例方法和静态方法内部， 在类构造函数中使用super() 可以调用父类构造函数
+			class Foo {
+				constructor() {
+					this.hasFoo = true
+				}
+			}
+			class Bar extends Foo {
+				constructor() {
+					// 不要在调用super()之前引用this， 否则会抛错
+					super() // 相当于super.constructor()
+					console.log(this instanceof Foo);
+					console.log(this);
+				}
+			}
+			new Bar() // Bar {hasFoo: true}
+
+			// 在静态方法中可以通过super调用继承的类上定义的静态方法：
+			class Vertical {
+				static identify() {
+					console.log('Vertical');
+				}
+			}
+			class VerticalSon extends Vertical {
+				static identify() {
+					super.identify()
+				}
+			}
+			VerticalSon.identify() // 'Vertical'
+			/* 
+				es6给类构造函数和静态方法添加了内部特性[[HomeObject]],这个特性是一个指针， 指向定义该方法的对象
+				这个指针是自动赋值的， 而且只能在js引擎内部访问， super始终会定义为[[HomeObject]]的原型
+
+				在使用super是要注意几个问题：
+				1，super只能在派生类构造函数和静态方法中使用
+				2，不能单独引用super关键字， 要么引用静态方法， 要么用它调用构造函数
+				3，调用super() 会调用父类构造函数， 并将返回的实例赋值给this
+				4，super() 的行为如同调用构造函数， 如果需要给父类构造函数传参， 则需要手动传入
+				5，如果没有定义类构造函数， 在实例化派生类时会调用super(), 而且会传入所有传给派生类的参数
+				6，在类构造函数中， 不能调用super() 之前引用this
+				7，如果在派生类中显式定义了构造函数， 则要么必须在其中调用super(), 要么必须在其中返回一个对象
+			*/
+			class Father {
+				// constructor() { // 1.
+				// 	super()
+				// }
+				constructor(info) { // 4
+					this.info = info
+				}
+			}
+			class Son extends Father {
+				constructor(info) {
+					// console.log(super); // 2 'super' must be followed by an argument list or member access
+
+					// console.log(this); // 6 Must call super constructor in derived class before accessing 'this' or returning from derived constructor
+					super(info) // 4 同时对应了7 是必须的super
+					
+					console.log(this instanceof Father); // 3
+				}
+			}
+			class Son1 extends Father { // 对应5
+
+			}
+			new Son('info9527')
+
+			console.log(new Son('info9527'));
+			console.log(new Son1('infoSon1ais'));
+
+			// 抽象基类
+			/* 
+				有时候可能需要定义这样一个类， 它可以供其他类继承， 但本身不会被实例化， 虽然ECMAScript中没有
+				专门支持这类的语法， 但是通过new.target也很容易实现， new.target保存通过new关键词调用的类或函数
+				通过在实例化时检测new.target是不是抽象基类，可以阻止对抽象基类的实例化。（只允许抽象基类被继承）
+
+				也可以通过在抽象基类构造函数中进行检查， 可以要求派生类必须定义某个方法。因为原型方法在调用类构造函数
+				之前就已经存在了， 所以可以通过this关键字来检查相对应的方法
+			*/
+			// 抽象基类
+			class AbstractBasse {
+				constructor() {
+					console.log(new.target);
+					if (new.target === AbstractBasse) {
+						throw new Error('AbstractBasse cannot be directly instantiated')
+					}
+					// 要求派生类有foo()
+					// if (!this.Foo) {
+					// 	throw new Error('must define foo()')
+					// }
+				}
+			}
+			// 派生类
+			class AbstractSon extends AbstractBasse {
+
+			}
+			// let abs = new AbstractSon()
+			// let abson = new AbstractBasse()
+
+			// 继承内置类型
+			// es6类继承内置引用类型提供了顺畅的机制， 开发者可以方便的拓展内置类型
+			class SuperArray extends Array {
+				shuffle() {
+					for (let i = this.length - 1; i > 0; i--) {
+						const j = Math.floor(Math.random() * (i + 1));
+						[this[i], this[j]] = [this[j], this[i]]
+					}
+				}
+			}
+			let supera = new SuperArray(1,2,3,45,6)
+			console.log(supera); // [1, 2, 3, 45, 6]
+			supera.shuffle()
+			console.log(supera);
+
+			// 有些内置类型的方法会返回新实例，默认情况下，返回实例的类型与原始实例的类型是一致的
+			// 可以通过Symbol.species访问器， 这个访问器决定在创建返回的实例时使用的类
+			class SuperArr extends Array {
+				static get [Symbol.species] () {
+					// return Object
+					return Array
+				}
+			}
+			let a1 = new SuperArr(1,4,5,21,6)
+			let a2 = a1.filter(x => !!(x%2))
+			console.log(a1, a2);
+			console.log(a1 instanceof SuperArr); // true
+			console.log(a2 instanceof SuperArr); // false
+			console.log(a2 instanceof Array); // true
+		</script>
+	</body>
+</html>

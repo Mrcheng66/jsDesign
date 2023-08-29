@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    生成器是ECMAScript6 中新增的一个极为灵活的结构, 拥有在一个函数块内
+    暂停和恢复代码执行的能力. 使用生成器可以自定义迭代器和实现协程
+  </pre>
+</head>
+<body>
+  <script>
+    /* 生成器基础
+      生成器的形式是一个函数, 函数名称前面加一个星号(*) 表示它是一个生成器, 只有
+      是可以定义函数的地方就可以定义生成器, ps: 箭头函数不能用来定义生成器函数, 且生成器函数的星号
+      不受两侧空格的影响
+    */
+
+    // 生成器函数声明 方式: function* 函数名称(参数列表) {函数体}, 
+    function* generatorFn() {
+    }
+
+    let generator = function *() {
+      // 生成器函数表达式
+    }
+
+    let foo = {
+      * generatorFn() {
+        // 生成器函数表达式
+      }
+    }
+
+    class Foo {
+      * generatorFn() {
+        // 生成器函数表达式
+      }
+    }
+    // 作为静态方法的生成器函数
+    class Bar {
+      static * generatorFn() {
+        // 生成器函数表达式
+      }
+    }
+
+    /* 
+      调用生成器函数会产生一个生成器对象, 生成器一开始处于暂停执行(suspended) 状态, 
+      与迭代器相似, 生成器对象也实现了Iterator接口, 因此具有next() 方法, 调用这个方法会让
+      生成器开始或恢复执行
+    */
+
+    console.log(generatorFn()); // generatorFn {<suspended>}
+    console.log(generatorFn().next); // ƒ next() { [native code] }
+    console.log(generatorFn().next()); // {value: undefined, done: true}
+    // value属性是生成器函数的返回值, 默认是undefined, 可以通过生成器函数的返回值指定
+
+    function * generatorFun() {
+      console.log('foo');
+    }
+    // 生成器函数只会在初次调用next() 方法之后执行
+    let genObj = generatorFun();
+    genObj.next() // "foo"
+
+    /* 
+      生成器对象实现了 Iterator接口, 他们默认的迭代器是自引用的
+    */
+
+    console.log(generatorFun()); // generatorFun {<suspended>}
+    console.log(generatorFun()[Symbol.iterator]); // ƒ [Symbol.iterator]() { [native code] }
+    console.log(generatorFun()[Symbol.iterator]()); // generatorFun {<suspended>}
+
+    const g = generatorFun()
+
+    console.log(g === g[Symbol.iterator]()); // true
+
+    console.log(generatorFun() === generatorFun()[Symbol.iterator]()); // false
+    /* 别问为啥返回的布尔值不同, 因为每次执行生成器函数返回的生成器对象是不同的啊... */
+  </script>
+</body>
+</html>

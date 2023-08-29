@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    yield 关键字可以让生成器停止和开始执行, 也是生成器最有用的地方, 生成器函数在遇到
+    yield关键字窒息会正常执行, 遇到这个关键字后, 执行会停止, 函数作用域的状态会被保留
+    停止执行的生成器函数只能通过生成器对象上调用next() 方法来恢复执行
+  </pre>
+  <pre>
+    使用yield 实现输入和输出
+    yield关键字除了可以作为函数的中间返回语句使用, yield 关键字还可作为函数的中间参数使用
+    上一次让生成器函数暂停的yield关键字会接收到传给next() 方法的第一个值, 这里有个地方不太好理解
+    第一次调用next() 传入的值并不会被使用, 因为这一次调用时为了开始执行生成器函数
+  </pre>
+</head>
+<body>
+  <script>
+    function * generatorFn() {
+      yield 'foo'
+      yield 'baz'
+      return 'bar'
+    }
+    let g = generatorFn()
+    console.log(g.next()); // {value: 'foo', done: false}
+    console.log(g.next()); // {value: 'baz', done: false}
+    console.log(g.next()); // {value: 'bar', done: true}
+    /* 
+      yield关键字有点像函数中间返回语句, 它生成的值会出现在next() 方法返回的对象里, 
+      通过yield 关键字退出的生成器函数会处于done: false状态; 通过return 关键字退出的生成器函数
+      处于done: true 状态. ps: 为啥上面写成匿名函数, 因为必须要这样子... 生成器函数内部的执行流程会
+      针对每个生成器对象区分作用域, 在一个生成器对象上调用next() 不会影响其他生成器. 而且yield 关键字
+      只能在生成器函数内部使用, 用在其他地方会抛出错误, 类似函数return 关键字
+    */
+    // 生成器对象作为可迭代对象
+    /* 
+      在生成器对象上显式调用next() 方法用处不大, 其实, 如果把生成器对象当成可迭代的对象, 那么用起来会更方便
+    */
+
+    // for (const key of generatorFn()) {
+    //   console.log(key);
+    // }
+    
+    /* 参考上面pre标签内容说明 */
+    function * generatorFunc(params) {
+      console.log(params);
+      console.log(yield);
+      console.log(yield);
+    }
+    let g1 = generatorFunc('foo');
+    g1.next()
+    g1.next('bar')
+    g1.next('qux')
+    /* 
+      yield关键字可以同时用于输入和输出
+    */
+    function * generatorFy() {
+      return yield 'foo'
+    }
+    let g2 = generatorFy()
+    console.log(g2.next()); // {value: 'foo', done: false}
+    console.log(g2.next('bar')); // {value: 'foo', done: false}
+    console.log(g2.next()); // {value: undefined, done: true}
+
+    /* 函数必须对整个表达式求值才能确定返回值, 所以它遇到yield 关键字时暂停执行并计算出
+      要产生的值: 'foo', 下一次调用next() 传入'bar', 作为交给同一个yield的值, 然后这个值被
+      确定为本次生成器函数要返回的值
+    */
+
+    /* 
+      3. 产生可迭代对象
+      可以使用 * 增强yield的行为, 让它能够迭代一个可迭代对象, 从而一次产生一个值
+      因为yield * 实际上只是将一个可迭代对象序列化为一串可以单出产出的值, 所以这跟把yield放到一个
+      循环里面没有区别, ps: * 位置也不会有任何影响函数
+    */
+
+    function * generatorFy2() {
+      yield * [1, 2, 3]
+      yield * [4, 5, 6]
+      yield * [7, 8, 9]
+    }
+    for (const x of generatorFy2()) {
+      console.log(x);
+    }
+  </script>
+</body>
+</html>

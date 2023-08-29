@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <pre>
+        使用代理模式可以在代码中实现一些有用的编程模式
+        1. 跟踪属性访问（通过捕获get， set， has等操作）， 可以知道那些对象属性什么时候被访问查询
+        2. 隐藏属性
+        3. 属性验证
+        4. 数据绑定与可观察对象
+    </pre>
+</head>
+<body>
+    <script>
+        // 1.跟踪属性
+        const user = {
+            name: 'kerwin'
+        }
+        const proxy = new Proxy(user, {
+            get() {
+                console.log('get');
+                return Reflect.get(...arguments)
+            },
+            set(target, property, value, receiver) {
+                console.log(`set ${property} = ${value}`);
+                return Reflect.set(...arguments)
+            },
+            has() {
+
+            }
+        })
+        proxy.name
+        proxy.age = 18
+
+        // 隐藏属性
+        const hiddenProperties = ['foo', 'bar']
+        const targetObj = {
+            foo: '1',
+            bar: '2',
+            baz: '3'
+        }
+        const proxyH = new Proxy(targetObj, {
+            get(target, property) {
+                if (hiddenProperties.includes(property)) {
+                    return undefined
+                } else {
+                    return Reflect.get(...arguments)
+                }
+            },
+            has(target, property) {
+                if (hiddenProperties.includes(property)) {
+                    return false
+                } else {
+                    return Reflect.has(...arguments)
+                }
+            }
+        })
+        console.log(proxyH.foo);
+        console.log(proxyH.baz);
+
+        console.log('foo' in proxyH); // false 
+        console.log('baz' in proxyH); // true
+        
+        // 属性验证
+        const targetS = {
+            onlyNum: 0
+        }
+        const proxyS = new Proxy(targetS, {
+            set(target, property, value, receiver) {
+                if (typeof value !== 'number') {
+                    return false
+                } else {
+                    return Reflect.set(...arguments)
+                }
+            }
+        })
+        proxyS.onlyNum = 1
+        console.log(proxyS.onlyNum);
+        proxyS.onlyNum = '2'
+        console.log(proxyS.onlyNum); // 1
+
+        // 数据绑定与可观察对象
+        // 通过代理可以把运行时中原本不相关的部分联系到一起， 这样就可以实现各种模式， 从而让不同的代码互相操作
+        // 比如，可以将被代理的类绑定到一个全局实例集合， 让创建的实例都被添加到这个集合中
+        const userList = []
+        class User {
+            constructor(name) {
+                this.name_ = name
+            }
+        }
+        const proxyU = new Proxy(User, {
+            constructor() {
+                const newUser = Reflect.construct(...arguments)
+                userList.push(newUser)
+            }
+        })
+        const val1 = new proxyU('john')
+        new proxyU('kerwin')
+        new proxyU('michael')
+        console.log(userList);
+        console.log(val1);
+
+        // 另外还可以把集合绑定到一个事件分派程序， 每次插入新实例时都会发送消息
+        const userLists = []
+        function emit(newVal) {
+            console.log(newVal);
+        }
+        const proxyE = new Proxy(userLists, {
+            set(target, property, value, receiver) {
+                const res = Reflect.set(...arguments)
+                if (res) {
+                    emit(Reflect.get(target, property, receiver))
+                }
+                return res
+            }
+        })
+        proxyE.push('james')
+
+        // 深入理解js代理应用（js数据执行流程）
+        var a = new Proxy([], Reflect.ownKeys(Reflect).reduce((handlers, key) => {
+            handlers[key] = (...arguments) => {
+                console.log(key, ...arguments);
+                return Reflect[key](...arguments)
+            }
+            return handlers
+        }, {}))
+        a.push('james')
+        /* 
+            get [] push Proxy {}
+            get [] length Proxy {}
+            set [] 0 james Proxy {}
+            getOwnPropertyDescriptor [] 0
+            defineProperty [] 0 {value: 'james', writable: true, enumerable: true, configurable: true}
+            set ['james'] length 1 Proxy {0: 'james'}
+            getOwnPropertyDescriptor ['james'] length
+            defineProperty ['james'] length {value: 1}
+        */
+    </script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    很多面向对象的语言都支持两种继承:接口继承和实现继承
+    前者:之继承方法签名,后者继承实际的方法
+    在ECMAScript中是不可能的,因为函数没有签名
+    
+    ECMAScript将原型链定义为主要继承方式， 其基本思想就是通过原型继承多个引用类型的属性和方法
+    理解构造函数，原型和实例之间的关系：每个构造函数都有一个原型对象， 原型对象有一个属性指回构造函数
+    而实例有一个内部指针指向原型。
+    如果原型是另一个类型的实例呢？ 那就意味着这个原型本身有一个内部指针指向另一个原型， 相应的另一个原型
+    也有一个指针指向另一个构造函数， 这样就在实例和原型之间构造了一条原型链
+  </pre>
+</head>
+<body>
+  <script>
+    // 1.原型链继承
+    function SuperType() {
+      this.type = true
+    }
+    SuperType.prototype.getSuperType = function () {
+      return this.type
+    }
+    // 这里通过构造函数new创建一个新的对象;可以拿到type这是基于对象属性/方法查找机制的先在当前构造函数的空间内查找再去原型链上查找
+    // console.log(new SuperType());
+    function SubType() {
+      this.subtype = false
+    }
+    // 继承SuperType
+    SubType.prototype = new SuperType()
+    SubType.prototype.getSubValue = function () {
+      return this.subtype
+    }
+    const instance = new SubType()
+    // console.log(instance instanceof SubType); // true
+    // console.log(instance.constructor === SubType); // false
+    // console.log(instance.constructor === SuperType); // true
+    // 如前面所说如果直接替换原型对象实现继承此时就需要注意检验方法了
+    console.log(instance.getSuperType()); // 通过原型链继承SuperType的子类Subtype中就能回去到父类的方法属性了也可instance.type
+    // 这样实现继承的关键点就在SubType.prototype = new SuperType();这里将SubType的默认原型切断替换为SuperType的实例对象;
+    // 所以这样一来SubType的实例不仅能从SuperType的实例中继承属性和方法;而且还和SuperType的原型挂上了钩,
+    // 于是instance(通过内部[[Prototype]], __proto__就是其内部暴露出来的方法)通过这样的查找机制层层查找获取到getSuperType()方法
+    // 但是这种方法存在的问题1.不能给父构造函数传参2.如果有共享的数据,在继承类的实例中修改属性,所有其他实例的该属性都将修改
+
+    // 2.盗用构造函数继承
+    // 思路:在子类的构造函数中调用局父类的构造函数,因为毕竟函数就是在特定上下文中执行代码的简单对象,
+    // 所以可以使用call和apply以新创建的对象为上下文执行构造函数
+    function SuperTypes() {
+      this.colors = ['red', 'blue', 'pink'];
+      this.sayHi = function () {
+        this.colors.forEach(element => {
+          console.log(element);
+        });
+      }
+    }
+    SuperTypes.prototype.sayColors = function () {
+      this.sayHi = function () {
+        this.colors.forEach(element => {
+          console.log(element);
+        });
+      }
+    }
+    function SubTypes() {
+      // 继承SuperTypes
+      SuperTypes.call(this)
+    }
+    const ins = new SubTypes()
+    ins.colors.push('yellow')
+    console.log(ins);
+
+    const ins2 = new SubTypes()
+    console.log(ins2);
+    // 这个方法:通过call或者apply方法,SuperTypes构造函数在为SubTypes创建实例对象的上下文中执行了.这相当于新的SubTypes对象上运行了SuperTypes()函数中的初始化代码;
+    // 这种方法就解决的上面原型链继承的问题,可以给父类构造函数传参就是call,apply继承的时候传递,也能实现数据的私有化
+    // 问题: 1.必须在构造函数中定义方法,因此函数不能重用 2.子类也不能访问父类原型上定义的方法
+
+    // 3.组合继承
+    // 说白了就是组合原型链继承和盗用构造函数;
+    // 基本思路:使用原型链继承原型上的属性和方法,通过构造函数继承实例属性
+    function FatherType(name) {
+      this.name = name;
+      this.colors = ['red', 'pink', 'blue'];
+    }
+    FatherType.prototype.sayName = function () {
+      console.log(this.name);
+    }
+    function Son(name, age) {
+      // 继承属性
+      FatherType.call(this, name)
+      this.age = age
+    }
+    // 继承方法
+    Son.prototype = new FatherType()
+    Son.prototype.sayAge = function () {
+      console.log(this.age);
+    }
+
+    const obj1 = new Son('James', 18)
+    obj1.colors.push('yellow')
+    console.log(obj1);
+    const obj2 = new Son()
+    console.log(obj2);
+
+    // 4.原型式继承
+    // 出发点是即使不自定义类型也可以通过原型实现对象之间的信息共享
+    function obj(o) {
+      function F() {}
+      F.prototype = o;
+      return new F();
+    }
+    // 这个obj()函数会创建一个临时构造函数,将传入的对象赋值给这个构造函数的原型,然后返回这个临时类型的一个实例
+    // 本质上,obj()是对传入的对象执行了一次浅复制.看下面的例子
+    let person = {
+      name: 'James',
+      color: ['red', 'pink', 'yellow'],
+      allColor() {
+        this.color.forEach(item => {
+          console.log(item);
+        })
+      }
+    }
+    let anotherObj = new obj(person)
+    anotherObj.name = 'Kobe'
+    anotherObj.color.push('起飞')
+    console.log(anotherObj.color);
+
+    let anotherObj1 = new obj(person)
+    // anotherObj1.name = 'Jordan'
+    anotherObj1.color.push('芜湖')
+    console.log(anotherObj1.name);
+    console.log(person);
+    // 这个方法使用于:当你有一个对象,想在它的基础上再创建一个新对象,你需要把这个新对象先传给obj(),然后在对返回的对象进行适当的修改
+    // 在这个例子中person对象定义了另一个对象也应该共享的信息,把他传给object()之后会返回一个新对象.
+    // 这个新对象原型是person,意味着他的原型上既有原始值属性又有引用值属性,这也意味着person.color不仅是person的属性也会跟anotherObj1,anotherObj共享
+    // 这里实际上浅克隆了两个person, 所以如果要继承对象属性相互独立不能使用这种方法
+
+    // 5.寄生式继承
+    // 实现思路:类似于寄生构造函数和工厂模式:创建一个实现继承的函数,以某种方式增强对象,然后返回这个对象(还是浅拷贝对象)
+    function ceratAnother(origin) {
+      let clone = Object(origin)
+      clone.sayHi = function () {
+        console.log('hello');
+      }
+      return clone
+    }
+    let anotherClone = new ceratAnother(person)
+    anotherClone.color.push('green')
+    console.log(anotherClone);
+    console.log(person.color);
+    // 6.寄生式组合继承
+    // 组合继承存在效率问题，最主要的就是父类构造函数始终会被调用两次：一：在创建子类原型时调用,另一次是在子类构造函数中调用
+    // 本质上，子类原型最终是要包含超类对象的所以实例属性，子类构造函数只要在执行的时候重写自己的原型就行了
+    /* 
+      function FatherType(name) {
+      this.name = name;
+      this.colors = ['red', 'pink', 'blue'];
+      }
+      FatherType.prototype.sayName = function () {
+        console.log(this.name);
+      }
+      function Son(name, age) {
+        // 继承属性
+        FatherType.call(this, name)  // 第一次调用
+        this.age = age
+      }
+      // 继承方法
+      Son.prototype = new FatherType()  // 第二次调用
+      Son.prototype.sayAge = function () {
+        console.log(this.age);
+      }
+
+      const obj1 = new Son('James', 18)
+      obj1.colors.push('yellow')
+      console.log(obj1);
+      const obj2 = new Son()
+      console.log(obj2);
+     */
+    //  基本思路：是不通过调用父类构造函数给子类原型，而是取父类原型的一个副本.
+    // 说到底就是使用寄生式继承来继承父类原型,然后将返回的新对象赋值给子类的原型
+    function inheritPrototype(son, father) {
+      let prototype = Object(father.prototype) // 创建对象
+      prototype.constructor = son // 增强对象
+      son.prototype = prototype // 赋值对象
+    }
+    // 这个inheritPrototype()函数就是核心.它接收两个参数子类构造函数和父类构造函数
+    // 在这个函数的内部创建父类原型的一个副本,然后给返回的prototype对象设置constructor属性,
+    // 解决重写原型导致默认constructor丢失的问题,最后将新创建的对象赋值给子类的原型.
+    
+    // es6新增class关键字便于我们实现继承， 本质还是原型链继承的语法糖而已
+    // 在子类中通过super获取定义的内容
+    class father {}
+
+    class son extends father {}
+  </script>
+</body>
+</html>

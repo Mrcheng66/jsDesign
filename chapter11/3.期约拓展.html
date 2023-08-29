@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+		<pre>
+			期约实现是很可靠的， 但它也有不足之处，比如，很多第三方期约库实现中具备而ECMAScript规范
+			未涉及的两个特性：期约取消和进度追踪
+		</pre>
+  </head>
+  <body>
+		<button id="start">开启期约</button>
+		<button id="end">取消期约</button>
+		<script>
+			// cancel类的一个基本实例
+			class CancelToken {
+				constructor(cancelFn) {
+					this.promise = new Promise((resolve, reject) => {
+						cancelFn(resolve)
+					})
+				}
+			}
+
+			// 上面这个类包装了一个期约，把解决方法暴露给了一个cancelFn参数。这样，外部代码就可以
+			// 像构造函数中传入一个函数，从而控制什么情况下可以取消期约
+			// exp
+			class CancelPro {
+				constructor(cancelFn) {
+					this.fakePromise = new Promise((resolve, reject) => {
+						cancelFn(() => {
+							setTimeout(console.log, 0, 'delay cancelled')
+							resolve()
+						})
+					})
+				}
+			}
+
+			const start = document.getElementById('start')
+			const end = document.getElementById('end')
+			function cancellableDelay(delay) {
+				setTimeout(console.log, 0, 'set delay')
+
+				return new Promise((resolve, reject) => {
+					const id = setTimeout(() => {
+						setTimeout(console.log, 0, 'delay resolve')
+						resolve()
+					}, delay)
+					const cancelTo = new CancelPro((cancelCallBack) => {
+						end.addEventListener('click', cancelCallBack)
+					})
+					// setTimeout(console.log,4000, cancelTo)
+					cancelTo.fakePromise.then(() => {
+						clearTimeout(id)
+					})
+				})
+			}
+			
+			start.addEventListener('click', function () {
+				cancellableDelay(2000)
+			})
+		</script>
+	</body>
+</html>

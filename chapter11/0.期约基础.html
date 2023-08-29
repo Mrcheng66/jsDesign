@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <pre>
+        同步行为： 对应内存中顺序执行的处理器指令。每条指令都会严格按照他们出现的顺序来执行，而每条
+        指令执行后也能立即获得储存在系统本地（如寄存器或系统内存）的信息
+
+        异步行为： 异步行为类似于系统中断，即当前进程外部的实体可以触发代码执行。异步操作经常是必要的，
+        因为强制进程等待一个长时间的操作通常是不可取的（同步操作则必须要等）。如果代码要访问一些高延迟资源
+        比如像远处服务器发送请求并等待响应
+    </pre>
+  </head>
+  <body>
+    <script>
+      // 常见的异步操作
+      let x = 6;
+      setTimeout(() => {
+        x = x * 3;
+      }, 1000);
+      // 执行x改变方法？， 执行线程不知道x值何时会改变，因为这取决于回调何时从消息队列出列并执行
+
+      // 🌟🌟🌟🌟以往的异步模式编程
+      // 异步行为是js的基础， 在早期的js中， 只支持定义回调函数的方法来表明异步操作完成。串联多个异步操作
+      // 是一个常见的问题， 通常需要深度嵌套的回调函数被俗称为回调地狱
+
+      function double(val) {
+        setTimeout(() => {
+          // setTimeout(console.log, '2323', val * 4)
+          setTimeout(() => {
+            console.log("234234");
+          }, 1000 * val * 2);
+        }, 1000);
+      }
+      double(3);
+      // 这个代码没什么神秘的，但关键是理解为什么说它是一个异步函数，setTimeOut可以定义一个在指定时间之后
+      // 会被调度执行的回调函数，对这个例子而言， 1000 毫秒之后， js运行时会把回调函数推到自己的消息队列
+      // 上去等待执行。 推到队列之后， 回调什么时候出列被执行对js代码就完全不可见了。 还有一点double函数
+      // 在setTimeOut成功调度异步操作之后会立即退出
+
+      // 异步返回值
+      // 假设setTimeout操作会返回一个有用的值。有什么好方法把这个值传给需要它的地方？？？广泛接受的一个策略
+      // 是给异步操作提供一个回调，这个回调中包含要使用异步返回值的代码（作为回调的参数）
+      function doubleCall(val, callback) {
+        setTimeout(() => {
+          callback(val * 3);
+        }, 2000);
+      }
+      doubleCall(3, (x) => console.log(`i was given ${x}`));
+      // 这里setTimeout调用告诉js运行时在2000毫秒之后把一个函数推到消息队列， 这个函数会由运行时负责异步调度执行
+      // 而位于函数闭包中的回调及其参数在异步执行时仍然是可用的
+
+      // 失败道理
+      // 异步操作的失败处理在回调模型中也要考虑， 因为自然就出现了成功/失败回调
+      function fnType(val, success, failure) {
+        setTimeout(() => {
+          try {
+            if (typeof val !== "number") {
+              throw new Error("must be num");
+            }
+            success(2 * val);
+          } catch (error) {
+            failure(error);
+          }
+        }, 1000);
+      }
+      const success = (x) => console.log(`success ${x}`);
+      const failure = (e) => console.log(`failure ${e}`);
+
+      fnType(6, success, failure);
+      fnType("5", success, failure);
+      // 这种模式已经不可取了，因为必须在初始化异步操作时定义回调。 异步函数的返回值只在短时间内存在， 只有
+      // 预备好将这个段时间内存在的值作为参数的回调才能接收到它
+    </script>
+  </body>
+</html>

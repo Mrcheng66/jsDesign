@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <pre>
+			原型层级：
+			在通过对象访问属性的时候， 会按照这个属性的名称开始搜索， 搜索开始于对象实例本身， 如果在这个实例上发现了给定
+			的名称， 则返回该名称对应的值， 如果没有找到这个属性， 则搜索会沿着执政进入原型对象， 然后在原型对象找到属性后，
+			返回对应的值（前面提到的constructor属性只存在于原型对象， 因此通过实例对象也是可以访问到的）ps：虽然可以通过
+			实例读取原型对象上的值， 但不可能通过实例重写这些值， 如果在实例上添加一个与原型对象中同名的属性， 那么就会在实例
+			上创建这个属性， 这个属性会遮住原型对象上的属性
+
+			但是通过这种直接在原型链上一直添加属性的方法是不是很不快捷， 可以直接通过一个包含所有属性和方法的对象字面量来重写
+			原型成为一种常见的做法
+		</pre>
+  </head>
+  <body>
+    <script>
+      function Person() {}
+      Person.prototype.name = "kerwin";
+      Person.prototype.job = "software engineer";
+      Person.prototype.sayName = function () {
+        console.log(this.name);
+      };
+
+      const person1 = new Person();
+      const person2 = new Person();
+      person1.name = "james";
+      console.log(person1.name);
+      console.log(person2.name);
+      // delete person1.name
+      // console.log(person1.name); // kerwin
+
+      // js提供了hasOwnProperty() 方法用于确定某个属性是在实例上还是在原型对象上， 这个方法继承自Object的，
+      // 会在属性存在于调用它的对象实例上时返回true， 就是判断这个传入这个方法的属性是实例属性还是原型属性。
+      console.log(person1.hasOwnProperty("name")); // true
+      console.log(person2.hasOwnProperty("name")); // false
+
+			/* 
+				原型和in 操作符
+				有两种方法使用in操作符： 单独使用和在for-in循环中使用。 单独使用时， in操作符会在可以通过对象
+				访问指定属性时返回true， 无论该属性是在实例上还是原型上
+			*/
+			console.log('name' in person1); // true
+			Object.defineProperty(person1, 'age', {
+				value: 19,
+				enumerable: true
+			})
+			// for (const key in person1) {
+			// 	console.log(key);
+			// }
+			/* 
+				要获得对象上所有可枚举的实例属性， 可以使用Object.keys()方法， 这个方法接受一个对象作为参数
+				返回包含该对象所有可枚举属性名称的字符串数组
+			*/
+			console.log(Object.keys(Person.prototype));
+			console.log(Object.keys(person2));
+			// 如果想列出所有的实例属性， 无论是否可以枚举， 都可以使用Object.getOwnPropertyNames()
+			console.log(Object.getOwnPropertyNames(Person.prototype)); //  ['constructor', 'name', 'job', 'sayName']
+			console.log(Object.getOwnPropertyNames(Person)); // ['length', 'name', 'arguments', 'caller', 'prototype']
+
+			// es6 还新增了针对于符号的Object.getOwnPropertySymbols()这里就不演示了就是一样的使用方法
+
+			/* 
+				枚举顺序
+				for-in循环， Object.keys(), Object.getOwnPropertyNames(), Object.getOwnPropertySymbols()以及
+				Object.assign() 在属性枚举顺序方面有很大区别， for-in和Object.keys()枚举的顺序是不确定的，取决于js引擎， 可能因浏览器而异
+			*/
+			// 对象字面量重写原型方法
+			// 但是直接通过字面量的形式设置为构造函数原型对象， 会导致PersonPro.prototype的constructor属性不指向PersonPro了
+			// 在创建构造函数的时候也会创建它的prototype对象， 同时会自动给这个原型的constructor属性赋值。 而上面的写法完全重写了默认的
+			// prototype对象， 因此其constructor属性也指向了完全不同的新对象（Object构造函数）， 不再只想原来的构造函数， 虽然
+			//  instanceof 操作符还能可靠的返回值， 但是我们不能再依靠constructor属性来标识类型了
+			function PersonPro() {
+				
+			}
+			PersonPro.prototype = {
+				name: 'kerwin',
+				age: 19,
+				sayHi() {
+					console.log('my name is' + this.name);
+				}
+			}
+			console.dir(PersonPro.prototype)
+			console.dir(PersonPro.prototype.constructor) // ƒ Object()
+			const pp1 = new PersonPro
+			console.log(pp1 instanceof PersonPro); // true
+			console.log(pp1 instanceof Object); // true
+
+			console.log(pp1.constructor == PersonPro); // false
+			console.log(pp1.constructor == Object); // true
+
+			// 所以如果constructor的值很重要可以通过专门设置一下它的值
+			PersonPro.prototype = {
+				constructor:PersonPro,
+				name: 'kerwin',
+				age: 19,
+				sayHi() {
+					console.log('my name is' + this.name);
+				}
+			}
+			// 但是通过这种方式恢复constructor属性会创建一个[[Enumerable]]为true的属性， 而原生constructor
+			// 属性默认是不可枚举的， 因此如果你使用的是兼容ECMAScript的js引擎， 可以通过Object.defineProperty()方法来定义constructor属性
+			/* Object.defineProperty(PersonPro.prototype, 'constructor', {
+				value: PersonPro,
+				enumerable: false
+			}) */
+			/* for (const key in PersonPro.prototype) {
+				// hasOwnProperty只检测当前对象身上属性
+				if (PersonPro.prototype.hasOwnProperty.call(PersonPro.prototype, key)) {
+					const element = PersonPro.prototype[key];
+					console.log(element);
+				}
+			} */
+
+			/* 
+				虽然原型上所有属性都是在实例间共享的， 这对函数来说比较合适， 另外包含原始值的属性也还好，可以通过给实例
+				添加同名属性来简单遮蔽原型上的属性， 真正的问题是来自包含引用值的属性, 一个实例修改原型对象上的属性值，同时
+				也会影响其他对象， 所以这也是实际开发中通常不单独使用原型模式的原因， 这也就引出了继承
+			*/
+			PersonPro.prototype.firends = ['james', 'kobe']
+
+			const pp2 = new PersonPro
+			const pp3 = new PersonPro
+			pp2.firends.push('kerwin')
+			console.log(pp3.firends);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    在ECMAScript中的函数都是对象, 因此有属性和方法. 每个函数都有两个属性: length和prototype,
+    其中length 属性保存函数定义的命名参数的个数;
+    prtoptype属性也许是ECMAScript核心中最有趣的部分了, prototype是保存引用类型所有实例方法的地方,
+    这意味着toString(), valueOf() 等方法实际上都保存在prototype上,进而由所有实例共享
+  </pre>
+</head>
+<body>
+  <script>
+    function sayName(name) {
+      console.log(name);
+    }
+
+    function sum(num1, num2) {
+      return num1 + num2
+    }
+
+    function sayHi() {
+      console.log('hi');
+    }
+
+    console.log(sayName.length); // 1
+    console.log(sum.length); // 2
+    console.log(sayHi.length); // 0
+
+    // 函数的两个方法: apply() 和 call() ,这两个方法都会以指定的this值来调用函数, 即会设置调用函数时函数体内
+    // this对象的值, apply() 方法接收两个参数: 函数内this的值和一个参数数组; 第二个参数可以使Array实例,也可以是argument对象
+
+    function sum1(num1, num2) {
+      return num1 + num2
+    }
+
+    function callSum1(num1, num2) {
+      return sum1.call(this, num1, num2)
+    }
+
+    function applySum1(num1, num2) {
+      console.log(this);
+      return sum1.apply(this, [num1, num2])
+    }
+
+    console.log(callSum1(20,40));
+    console.log(applySum1(2,40));
+
+    /* 
+      在上面这个例子中callSum1()会调用sum1() 函数,将this作为函数体内的this值(这里等于window, 因为是在全局作用域中调用的)传入,
+      同时还传入了argument对象, applySum1() 也会调用sum1() 函数
+
+      call() 和apply() 的作用一样,只是传参的形式不同, 第一个参数跟apply() 一样,也是this 的值,而剩下的要传给
+      被调用函数的参数则是逐个传递的, 其实这两个方法只有传递参数的形式不同, 本质都是一样的
+      apply() 和 call() 方法真正强大的地方并不是给函数传参, 而是控制函数调用上下文中即函数体内this的值的能力,
+    */
+    window.color = 'red'
+
+    let o = {
+      color: 'blue'
+    }
+    function sayColor() {
+      console.log(this.color);
+    }
+    sayColor() // red
+
+    sayColor.call(this) // red
+    sayColor.call(window) // red
+    sayColor.call(o) // blue
+
+    /* 
+      sayColor() 是一个全局函数,如果在全局作用域中调用它, 那么会显示'red', 这是因为this.color 会求值为window.color
+      如果在全局作用域中显示调用sayColor.call(this) 或者sayColor.call(windwo)则会同样显示'red', 而把sayColor.call(o)
+      把函数的执行上下文即this 切换为对象o之后, 结果就回变成'blue' 了
+
+      使用call() 或者apply() 的好处是可以将任意对象设置为任意函数的作用域, 这样对象可以不用关系方法
+      
+    */
+  </script>
+</body>
+</html>

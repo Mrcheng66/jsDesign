@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    原始值包装类型, ECMAScript中提供了三种特殊的引用类型: Boolean, Number, String
+    特点: 具有与各自原始类型对应的特殊行为, 每当用到某个原始值的方法或者属性时, 后台都会
+    创建一个对应原始包装类型的对象, 从而暴露出操作原始值的方法
+  </pre>
+</head>
+<body>
+  <script>
+    let s1 = 'some text'
+    let s2 = s1.substring(2)
+
+    console.log(s2);
+    // 是不是很奇怪, 原始值本身不是对象, 从而在逻辑上不应该有此方法, 但是在运行时, 可以调用
+    /* 
+      这是因为后台做了很多处理, 从而实现上述操作
+      具体来说, 当执行第二行访问s1时候, 是已读模式访问的, 也就是从内存中读取变量保存的值, 在以只读
+      模式访问字符串值的任何时候, 后台都会执行三步操作
+      1) 创建一个String类型的实例;
+      2) 调用实例上特定的方法;
+      3) 销毁实例
+      可以想象成下面这样的步骤
+      引用类型与原始包装类型的区别在于对象的生命周期， 在通过new 实例化引用类型之后得到的实例
+      会在离开作用域链时候被销毁， 而自动创建的原始值包装对象则值存在于访问他的哪行代码执行期间
+    */
+  //  let s1 = new String('some text')
+  //  let s2 = s1.substring(2)
+  //  s1 = null
+  //  console.log(s2);
+    
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <pre>
+    ES6开始正式支持类和继承. ES6的旨在完全覆盖之前规范设计的基于原型的继承模式.
+    不过, 无论从哪方面来看, ES6的类都仅仅是封装了ES5.1 构造函数加原型继承的语法糖而已
+    创建对象
+    1. 工厂模式(不足没有解决对象标识问题)
+    2. 构造函数模式
+    3. 原型模式
+  </pre>
+</head>
+<body>
+  <script>
+    // 工厂函数
+    function creatPerson(name, job) {
+      let o = new Object();
+      o.name = name;
+      o.job = job;
+      return o
+    }
+    let person = creatPerson('Nicholas', 'Software Engineer');
+    let person2 = creatPerson('kerwin', 'Software Engineer');
+    console.log(person.constructor === person2.constructor); // true
+    console.log(person2.constructor === creatPerson); // false
+    console.log(person instanceof creatPerson); // false
+    /* 过程: 
+      1. 创建对象
+      2. 添加对象属性
+      3. 返回对象
+    */
+
+    // 构造函数模式
+    function Person(name, job) {
+      this.name = name;
+      this.job = job;
+    }
+    let person3 = new Person('Nicholas', 'Software Engineer');
+    console.log(person3.constructor === Person); // true
+    console.log(person3 instanceof Person); // true
+
+    /* 
+      构造函数与工厂函数区别
+      1. 没有显式的创建对象
+      2. 属性和方法直接赋值给了this
+      3. 没有return语句
+      ps: 构造函数名称按照惯例首字母大写, 也可以赋值给变量的函数表达式表示构造函数, 如果不想传参数那么
+      构造函数后面的括号可加可不加
+      执行过程(使用new操作符执行的操作):
+      1. 在内存中创建一个新对象（以构造函数prototype属性为原型，新创建一个对象）
+      2. 这个新对象内部的[[Prototype]]特性被赋值为构造函数的prototype属性
+      3. 构造函数内部的this被赋值为这个新对象(即this指向新对象)
+      4. 执行构造函数内部的代码(给新对象添加属性)
+      5. 如果构造函数返回非空对象, 则返回该对象, 否则返回刚创建的新对象
+    */
+    /* 
+      构造函数也是函数
+      构造函数与普通函数唯一区别就是调用方式不同, 除此之外, 构造函数也是函数. 并没有把某个函数定义
+      为构造函数的特殊语法. 任何函数只要使用new 操作符调用就是构造函数. 而不使用new操作符调用的函数
+      就是普通函数. ps: 构造函数缺点就是构造函数内部定义的方法会在每个实例上都创建一遍. 因为每个实例
+      方法都是做一样的事情所有其实没必要定义两个不同的function实例, 可以对比一下下面两个构造函数例子
+    */
+    function PersonC(name, job) {
+      this.name = name;
+      this.job = job;
+      this.sayName = function () {
+        alert(this.name);
+      }
+    }
+    
+    function PersonC2(name, job) {
+      this.name = name;
+      this.job = job;
+      this.sayName = sayName;
+    }
+    function sayName() {
+      alert(this.name);
+    }
+    
+    /* 
+      原型模式: 每个函数都会创建一个prototype 属性, 这个属性是一个对象, 包含应该由特定引用类型的实例共享
+      的属性和方法. 实际上, 这个对象就是通过调用构造函数创建的对象的原型, 使用原型对象的好处是, 在它
+      上面定义的属性和方法可以被对象实例共享, 原来在构造函数中直接赋值给对象实例的值可以直接赋值给他们的原型
+    */
+   /* 
+    我们需要牢记两点：
+    ①__proto__和constructor属性是对象所独有的；
+    ② prototype属性是函数所独有的，因为函数也是一种对象，所以函数也拥有__proto__和constructor属性。
+    __proto__属性的作用就是当访问一个对象的属性时，如果该对象内部不存在这个属性，那么就会去它的__proto__
+    属性所指向的那个对象（父对象）里找，一直找，直到__proto__属性的终点null，再往上找就相当于在null上取值，会报错。
+    通过__proto__属性将对象连接起来的这条链路即我们所谓的原型链。
+    prototype属性的作用就是让该函数所实例化的对象们都可以找到公用的属性和方法，即f1.__proto__ === Foo.prototype。
+    constructor属性的含义就是指向该对象的构造函数，所有函数（此时看成对象了）最终的构造函数都指向Function。
+   */
+    function PersonP() {
+    }
+    PersonP.prototype.name = 'Nicholas';
+    PersonP.prototype.age = 29;
+    PersonP.prototype.job = 'Software Engineer';
+    PersonP.prototype.sayName = function () {
+      alert(this.name);
+    }
+    const personP = new PersonP();
+    personP.sayName()
+    console.log(personP.__proto__.constructor === personP.constructor); // true 其实personP.constructor只是省略写法
+    console.log(PersonP.prototype === personP.__proto__); // true
+    console.log(PersonP.constructor); // true
+
+    /* 
+      原型总结: 无论何时, 只有创建一个函数,就会按照特定的规则为这个函数创建一个prototype属性(指向原型对象)
+      默认情况下, 所有的原型对象自动获得一个constructor属性, 指回与之关联的构造函数。 在自定义构造函数时，原型对象
+      默认只会获得constructor属性， 其他的所有方法都继承自Object。 每次调用构造函数创建一个新实例， 这个实例内部
+      [[Prototype]]指针就会赋值为构造函数的原型对象， 脚本中没有访问这个[[Prototype]]特性的标准方式， 但FireFox 和
+      Chrome上会在每个对象上暴露__proto__属性， 通过这个属性可以访问对象的原型
+    */
+    function PersonsProto() {
+      
+    }
+    PersonsProto.prototype.name = 'kewin'
+    console.log(typeof PersonsProto);
+    console.log(PersonsProto.prototype); 
+    // constructor: ƒ PersonsProto()
+    // [[Prototype]]: Object
+    // 所以如前面所述： 构造函数有一个prototype属性， 引用其原型对象，而这个原型对象也有一个constructor属性， 引用这个
+    // 构造函数换句话说两者循环引用, 正常的原型链都会终止于Object的原型对象， Object原型的原型就是null
+    console.log(PersonsProto.prototype.constructor === PersonsProto); // true
+    const newPP = new PersonsProto
+    console.log(newPP.__proto__ === PersonsProto.prototype); // 所以其实实例与构造函数之间没有直接联系
+    /*
+      但是为啥实例能调用原型对象上的方法呢？ 这是因为对象属性的查找机制， 其实也就是上面new 实例的过程
+      所以JavaScript提供了isPrototypeOf() 方法确定两个对象之间的这种关系。 本质上， isPrototypeOf()
+      会在传入参数的[[Prototype]]指向调用它的对象是返回true, 说白了就是只能检测实例是否是由当前构造函数或原型链上构造函数创建
+
+      还提供了Object.getPrototypeOf(), 返回参数内部特性[[Prototype]]的指
+    */
+    console.log(PersonsProto.prototype.isPrototypeOf(newPP));
+    console.log(Object.prototype.isPrototypeOf(newPP));
+
+    console.log(Object.getPrototypeOf(newPP) == PersonsProto.prototype); // true
+    console.log(Object.getPrototypeOf(newPP).name);
+    /* 
+      setPrototypeOf()方法， 可以向实例的私有特性[[Prototype]]写入一个新值， 这样可以重写一个对象的原型继承关系
+      ps： Object.setPrototypeOf() 会严重影响代码性能, 推荐使用Object.create()来创建一个新对象， 同时为其指定原型
+    */
+    let biped = {
+      nunLegs: 2
+    }
+    let PersonsProtos = {
+      name: 'meta'
+    }
+    Object.setPrototypeOf(PersonsProtos, biped)
+    console.log(PersonsProtos.__proto__);
+    console.log(PersonsProtos.nunLegs); // 2
+    console.log(Object.getPrototypeOf(PersonsProtos) === biped); // true
+
+    let newP = Object.create(biped)
+    newP.name = 'helon'
+    console.log(newP.nunLegs); // 2
+    console.log(Object.getPrototypeOf(newP) === biped); // true
+  </script>
+</body>
+</html>
